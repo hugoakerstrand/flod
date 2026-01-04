@@ -19,3 +19,4 @@ Imports:
     ggplot2,
     tibble
 VignetteBuilder: knitr
+URL: https://hugoakerstrand.github.io/flod/
