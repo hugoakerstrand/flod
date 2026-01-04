@@ -1,0 +1,9 @@
+pandoc: 3.1.11
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  flod: flod.html
+last_built: 2026-01-04T16:59Z
+urls:
+  reference: https://hugoakerstrand.github.io/flod/reference
+  article: https://hugoakerstrand.github.io/flod/articles
