@@ -1,0 +1,24 @@
+---
+title: "flod"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{flod}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(flod)
+```
+
+The flowSet is an S4 class and a convenient way of storing related .fcs files in
+a single object. However, being an S4 object, it is naturally restricted in its
+scope to the registered methods and, thus, foregoes potentially relevant
+functions for EDA, transformation, and modelling from other packages.
