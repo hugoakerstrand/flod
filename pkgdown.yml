@@ -3,7 +3,7 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   flod: flod.html
-last_built: 2026-01-08T11:21Z
+last_built: 2026-01-08T12:02Z
 urls:
   reference: https://hugoakerstrand.github.io/flod/reference
   article: https://hugoakerstrand.github.io/flod/articles
