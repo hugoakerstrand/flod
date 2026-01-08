@@ -2,7 +2,7 @@ Package: flod
 Title: Analysis of flow cytometry data using the Tidyverse suite
 Version: 0.0.0.9000
 Authors@R: 
-    person("Hugo", "Akerstrand", , "hugo.akerstrand@gmail.com", role = c("aut", "cre"))
+    person("Hugo", "Åkerstrand", , "hugo.akerstrand@gmail.com", role = c("aut", "cre"))
 Description: Provides the necessary functions to work with .FCS files inside of R. The aim of the package is to 1) ASAP get to a standard data science workflow (e.g. using Tidyverse and Tidymodels) and 2) provide domain specific functions for standard plotting, transforming, and gating in a familiar way to scientists. 
 License: MIT + file LICENSE
 Encoding: UTF-8
