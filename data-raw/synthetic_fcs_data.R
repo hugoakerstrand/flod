@@ -1,24 +1,10 @@
 # Generate Synthetic Flow Cytometry Data
 # Creates realistic 4-color flow cytometry data for 3 samples
 
-required_packages <- c("tidyverse", "duckdb")
-
-for (pkg in required_packages) {
-  if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
-    cat(sprintf("Installing %s...\n", pkg))
-    install.packages(pkg, repos = "https://cran.rstudio.com/", quiet = FALSE)
-  } else {
-    cat(sprintf("%s is already installed.\n", pkg))
-  }
-}
-
-cat("\nAll dependencies installed successfully!\n")
-
-
 library(tidyverse)
 library(duckdb)
 
-set.seed(42)  # For reproducibility
+set.seed(20260109)  # For reproducibility
 
 # Helper function to generate correlated FSC-A and FSC-H for singlets
 generate_singlets <- function(n, fsc_mean, fsc_sd) {
@@ -66,15 +52,28 @@ generate_marker <- function(n, pct_positive) {
   sample(c(neg, pos))  # Shuffle
 }
 
-# Generate Sample 1: Normal sample with positive markers
-generate_sample1 <- function(n_events = 20000) {
-  # Population breakdown - mutually exclusive populations
-  n_debris <- round(n_events * 0.02)  # 2% debris
-  n_dead <- round(n_events * 0.05)  # 5% dead
-  n_live <- n_events - n_debris - n_dead  # Remaining are live
-  n_singlets <- round(n_live * 0.95)  # 95% of live cells are singlets
+# Generic sample generator that accepts individual parameters
+generate_sample <- function(
+  sample_id,
+  n_events,
+  debris_pct,
+  dead_pct,
+  singlet_pct,
+  fsc_mean,
+  fsc_sd,
+  ssc_mean,
+  ssc_sd,
+  fl2_positive_pct,
+  fl3_positive_pct,
+  outlier_pct
+) {
+  # Calculate population sizes
+  n_debris <- round(n_events * debris_pct)
+  n_dead <- round(n_events * dead_pct)
+  n_live <- n_events - n_debris - n_dead
+  n_singlets <- round(n_live * singlet_pct)
   n_doublets <- n_live - n_singlets
-
+  
   # Initialize vectors
   fsc_a <- numeric(n_events)
   ssc_a <- numeric(n_events)
@@ -82,10 +81,10 @@ generate_sample1 <- function(n_events = 20000) {
   fl1_a <- numeric(n_events)
   fl2_a <- numeric(n_events)
   fl3_a <- numeric(n_events)
-
+  
   current_idx <- 1
-
-  # Generate debris (low FSC/SSC)
+  
+  # Generate debris
   if (n_debris > 0) {
     end_idx <- current_idx + n_debris - 1
     debris <- generate_debris(n_debris)
@@ -97,53 +96,53 @@ generate_sample1 <- function(n_events = 20000) {
     fl3_a[current_idx:end_idx] <- rlnorm(n_debris, log(200), 0.4)
     current_idx <- end_idx + 1
   }
-
-  # Generate dead cells (high FL1-A, but still in normal FSC/SSC range)
+  
+  # Generate dead cells
   if (n_dead > 0) {
     end_idx <- current_idx + n_dead - 1
-    dead_singlets <- generate_singlets(n_dead, 80000, 0.3)
+    dead_singlets <- generate_singlets(n_dead, fsc_mean * 0.85, fsc_sd)
     fsc_a[current_idx:end_idx] <- dead_singlets$fsc_a
     fsc_h[current_idx:end_idx] <- dead_singlets$fsc_h
-    ssc_a[current_idx:end_idx] <- rlnorm(n_dead, log(50000), 0.4)
+    ssc_a[current_idx:end_idx] <- rlnorm(n_dead, log(ssc_mean * 0.9), ssc_sd)
     fl1_a[current_idx:end_idx] <- generate_dead_cells(n_dead)
     fl2_a[current_idx:end_idx] <- rlnorm(n_dead, log(400), 0.3)
     fl3_a[current_idx:end_idx] <- rlnorm(n_dead, log(400), 0.3)
     current_idx <- end_idx + 1
   }
-
-  # Generate live singlets (majority population)
+  
+  # Generate live singlets
   if (n_singlets > 0) {
     end_idx <- current_idx + n_singlets - 1
-    singlets <- generate_singlets(n_singlets, 100000, 0.25)
+    singlets <- generate_singlets(n_singlets, fsc_mean, fsc_sd)
     fsc_a[current_idx:end_idx] <- singlets$fsc_a
     fsc_h[current_idx:end_idx] <- singlets$fsc_h
-    ssc_a[current_idx:end_idx] <- rlnorm(n_singlets, log(60000), 0.35)
+    ssc_a[current_idx:end_idx] <- rlnorm(n_singlets, log(ssc_mean), ssc_sd)
     fl1_a[current_idx:end_idx] <- generate_live_cells(n_singlets)
-    fl2_a[current_idx:end_idx] <- generate_marker(n_singlets, pct_positive = runif(1, 0.25, 0.75))
-    fl3_a[current_idx:end_idx] <- generate_marker(n_singlets, pct_positive = runif(1, 0.25, 0.75))
+    fl2_a[current_idx:end_idx] <- generate_marker(n_singlets, fl2_positive_pct)
+    fl3_a[current_idx:end_idx] <- generate_marker(n_singlets, fl3_positive_pct)
     current_idx <- end_idx + 1
   }
-
+  
   # Generate doublets
   if (n_doublets > 0) {
     end_idx <- current_idx + n_doublets - 1
-    doublets <- generate_doublets(n_doublets, 100000, 0.25)
+    doublets <- generate_doublets(n_doublets, fsc_mean, fsc_sd)
     fsc_a[current_idx:end_idx] <- doublets$fsc_a
     fsc_h[current_idx:end_idx] <- doublets$fsc_h
-    ssc_a[current_idx:end_idx] <- rlnorm(n_doublets, log(70000), 0.35)
+    ssc_a[current_idx:end_idx] <- rlnorm(n_doublets, log(ssc_mean * 1.1), ssc_sd)
     fl1_a[current_idx:end_idx] <- generate_live_cells(n_doublets)
-    fl2_a[current_idx:end_idx] <- generate_marker(n_doublets, pct_positive = 0.5)
-    fl3_a[current_idx:end_idx] <- generate_marker(n_doublets, pct_positive = 0.5)
+    fl2_a[current_idx:end_idx] <- generate_marker(n_doublets, fl2_positive_pct)
+    fl3_a[current_idx:end_idx] <- generate_marker(n_doublets, fl3_positive_pct)
   }
-
-  # Add some outliers (very high/low events)
-  n_outliers <- round(n_events * 0.005)
+  
+  # Add outliers
+  n_outliers <- round(n_events * outlier_pct)
   outlier_idx <- sample(1:n_events, n_outliers)
   fsc_a[outlier_idx] <- fsc_a[outlier_idx] * runif(n_outliers, 0.1, 3)
   ssc_a[outlier_idx] <- ssc_a[outlier_idx] * runif(n_outliers, 0.1, 3)
-
+  
   tibble(
-    sample_id = "Sample1",
+    sample_id = sample_id,
     event_id = 1:n_events,
     `FSC-A` = pmax(0, fsc_a),
     `SSC-A` = pmax(0, ssc_a),
@@ -154,188 +153,25 @@ generate_sample1 <- function(n_events = 20000) {
   )
 }
 
-# Generate Sample 2: Normal sample with background markers
-generate_sample2 <- function(n_events = 20000) {
-  # Similar structure to Sample1 but with slight variation - mutually exclusive populations
-  n_debris <- round(n_events * 0.025)  # 2.5% debris
-  n_dead <- round(n_events * 0.06)  # 6% dead
-  n_live <- n_events - n_debris - n_dead  # Remaining are live
-  n_singlets <- round(n_live * 0.96)  # 96% of live cells are singlets
-  n_doublets <- n_live - n_singlets
+# Define sample configurations as a tibble
+sample_configs <- tibble(
+  sample_id = c("Sample1", "Sample2", "Sample3"),
+  n_events = c(20000, 20000, 20000),
+  debris_pct = c(0.02, 0.025, 0.05),
+  dead_pct = c(0.05, 0.06, 0.90),
+  singlet_pct = c(0.95, 0.96, 0.85),
+  fsc_mean = c(100000, 95000, 90000),
+  fsc_sd = c(0.25, 0.25, 0.3),
+  ssc_mean = c(60000, 58000, 55000),
+  ssc_sd = c(0.35, 0.35, 0.4),
+  fl2_positive_pct = c(runif(1, 0.25, 0.75), 0.05, 0.3),
+  fl3_positive_pct = c(runif(1, 0.25, 0.75), 0.05, 0.3),
+  outlier_pct = c(0.005, 0.005, 0.005)
+)
 
-  fsc_a <- numeric(n_events)
-  ssc_a <- numeric(n_events)
-  fsc_h <- numeric(n_events)
-  fl1_a <- numeric(n_events)
-  fl2_a <- numeric(n_events)
-  fl3_a <- numeric(n_events)
-
-  current_idx <- 1
-
-  # Debris
-  if (n_debris > 0) {
-    end_idx <- current_idx + n_debris - 1
-    debris <- generate_debris(n_debris)
-    fsc_a[current_idx:end_idx] <- debris$fsc_a
-    ssc_a[current_idx:end_idx] <- debris$ssc_a
-    fsc_h[current_idx:end_idx] <- debris$fsc_h
-    fl1_a[current_idx:end_idx] <- generate_live_cells(n_debris)
-    fl2_a[current_idx:end_idx] <- rlnorm(n_debris, log(200), 0.4)
-    fl3_a[current_idx:end_idx] <- rlnorm(n_debris, log(200), 0.4)
-    current_idx <- end_idx + 1
-  }
-
-  # Dead cells
-  if (n_dead > 0) {
-    end_idx <- current_idx + n_dead - 1
-    dead_singlets <- generate_singlets(n_dead, 85000, 0.3)
-    fsc_a[current_idx:end_idx] <- dead_singlets$fsc_a
-    fsc_h[current_idx:end_idx] <- dead_singlets$fsc_h
-    ssc_a[current_idx:end_idx] <- rlnorm(n_dead, log(48000), 0.4)
-    fl1_a[current_idx:end_idx] <- generate_dead_cells(n_dead)
-    fl2_a[current_idx:end_idx] <- rlnorm(n_dead, log(400), 0.3)
-    fl3_a[current_idx:end_idx] <- rlnorm(n_dead, log(400), 0.3)
-    current_idx <- end_idx + 1
-  }
-
-  # Live singlets
-  if (n_singlets > 0) {
-    end_idx <- current_idx + n_singlets - 1
-    singlets <- generate_singlets(n_singlets, 95000, 0.25)
-    fsc_a[current_idx:end_idx] <- singlets$fsc_a
-    fsc_h[current_idx:end_idx] <- singlets$fsc_h
-    ssc_a[current_idx:end_idx] <- rlnorm(n_singlets, log(58000), 0.35)
-    fl1_a[current_idx:end_idx] <- generate_live_cells(n_singlets)
-    # Background/null signal for FL2-A and FL3-A (all low)
-    fl2_a[current_idx:end_idx] <- rlnorm(n_singlets, log(350), 0.35)
-    fl3_a[current_idx:end_idx] <- rlnorm(n_singlets, log(380), 0.35)
-    current_idx <- end_idx + 1
-  }
-
-  # Doublets
-  if (n_doublets > 0) {
-    end_idx <- current_idx + n_doublets - 1
-    doublets <- generate_doublets(n_doublets, 95000, 0.25)
-    fsc_a[current_idx:end_idx] <- doublets$fsc_a
-    fsc_h[current_idx:end_idx] <- doublets$fsc_h
-    ssc_a[current_idx:end_idx] <- rlnorm(n_doublets, log(65000), 0.35)
-    fl1_a[current_idx:end_idx] <- generate_live_cells(n_doublets)
-    fl2_a[current_idx:end_idx] <- rlnorm(n_doublets, log(350), 0.35)
-    fl3_a[current_idx:end_idx] <- rlnorm(n_doublets, log(380), 0.35)
-  }
-
-  # Outliers
-  n_outliers <- round(n_events * 0.005)
-  outlier_idx <- sample(1:n_events, n_outliers)
-  fsc_a[outlier_idx] <- fsc_a[outlier_idx] * runif(n_outliers, 0.1, 3)
-  ssc_a[outlier_idx] <- ssc_a[outlier_idx] * runif(n_outliers, 0.1, 3)
-
-  tibble(
-    sample_id = "Sample2",
-    event_id = 1:n_events,
-    `FSC-A` = pmax(0, fsc_a),
-    `SSC-A` = pmax(0, ssc_a),
-    `FSC-H` = pmax(0, fsc_h),
-    `FL1-A` = pmax(0, fl1_a),
-    `FL2-A` = pmax(0, fl2_a),
-    `FL3-A` = pmax(0, fl3_a)
-  )
-}
-
-# Generate Sample 3: Failed sample (95% dead)
-generate_sample3 <- function(n_events = 20000) {
-  # Mutually exclusive populations - failed sample has more debris and dead cells
-  n_debris <- round(n_events * 0.05)  # 5% debris (more than normal)
-  n_dead <- round(n_events * 0.90)  # 90% dead (most of the sample)
-  n_live <- n_events - n_debris - n_dead  # Very few live cells remaining
-  n_singlets <- round(n_live * 0.85)  # Fewer singlets in failed sample
-  n_doublets <- n_live - n_singlets
-
-  fsc_a <- numeric(n_events)
-  ssc_a <- numeric(n_events)
-  fsc_h <- numeric(n_events)
-  fl1_a <- numeric(n_events)
-  fl2_a <- numeric(n_events)
-  fl3_a <- numeric(n_events)
-
-  current_idx <- 1
-
-  # Debris (more in failed sample)
-  if (n_debris > 0) {
-    end_idx <- current_idx + n_debris - 1
-    debris <- generate_debris(n_debris)
-    fsc_a[current_idx:end_idx] <- debris$fsc_a
-    ssc_a[current_idx:end_idx] <- debris$ssc_a
-    fsc_h[current_idx:end_idx] <- debris$fsc_h
-    fl1_a[current_idx:end_idx] <- rlnorm(n_debris, log(20000), 0.6)  # Variable FL1
-    fl2_a[current_idx:end_idx] <- rlnorm(n_debris, log(200), 0.4)
-    fl3_a[current_idx:end_idx] <- rlnorm(n_debris, log(200), 0.4)
-    current_idx <- end_idx + 1
-  }
-
-  # Dead cells (majority)
-  if (n_dead > 0) {
-    end_idx <- current_idx + n_dead - 1
-    dead_singlets <- generate_singlets(n_dead, 70000, 0.35)
-    fsc_a[current_idx:end_idx] <- dead_singlets$fsc_a
-    fsc_h[current_idx:end_idx] <- dead_singlets$fsc_h
-    ssc_a[current_idx:end_idx] <- rlnorm(n_dead, log(45000), 0.45)
-    fl1_a[current_idx:end_idx] <- generate_dead_cells(n_dead)
-    fl2_a[current_idx:end_idx] <- rlnorm(n_dead, log(400), 0.4)
-    fl3_a[current_idx:end_idx] <- rlnorm(n_dead, log(400), 0.4)
-    current_idx <- end_idx + 1
-  }
-
-  # Live singlets (very few)
-  if (n_singlets > 0) {
-    end_idx <- current_idx + n_singlets - 1
-    singlets <- generate_singlets(n_singlets, 90000, 0.3)
-    fsc_a[current_idx:end_idx] <- singlets$fsc_a
-    fsc_h[current_idx:end_idx] <- singlets$fsc_h
-    ssc_a[current_idx:end_idx] <- rlnorm(n_singlets, log(55000), 0.4)
-    fl1_a[current_idx:end_idx] <- generate_live_cells(n_singlets)
-    # Some marker signal even in failed sample
-    fl2_a[current_idx:end_idx] <- generate_marker(n_singlets, pct_positive = 0.3)
-    fl3_a[current_idx:end_idx] <- generate_marker(n_singlets, pct_positive = 0.3)
-    current_idx <- end_idx + 1
-  }
-
-  # Doublets
-  if (n_doublets > 0) {
-    end_idx <- current_idx + n_doublets - 1
-    doublets <- generate_doublets(n_doublets, 90000, 0.3)
-    fsc_a[current_idx:end_idx] <- doublets$fsc_a
-    fsc_h[current_idx:end_idx] <- doublets$fsc_h
-    ssc_a[current_idx:end_idx] <- rlnorm(n_doublets, log(65000), 0.4)
-    fl1_a[current_idx:end_idx] <- generate_live_cells(n_doublets)
-    fl2_a[current_idx:end_idx] <- generate_marker(n_doublets, pct_positive = 0.3)
-    fl3_a[current_idx:end_idx] <- generate_marker(n_doublets, pct_positive = 0.3)
-  }
-
-  tibble(
-    sample_id = "Sample3",
-    event_id = 1:n_events,
-    `FSC-A` = pmax(0, fsc_a),
-    `SSC-A` = pmax(0, ssc_a),
-    `FSC-H` = pmax(0, fsc_h),
-    `FL1-A` = pmax(0, fl1_a),
-    `FL2-A` = pmax(0, fl2_a),
-    `FL3-A` = pmax(0, fl3_a)
-  )
-}
-
-# Generate all samples
-cat("Generating Sample 1 (normal with positive markers)...\n")
-sample1 <- generate_sample1()
-
-cat("Generating Sample 2 (normal with background markers)...\n")
-sample2 <- generate_sample2()
-
-cat("Generating Sample 3 (failed sample, 95% dead)...\n")
-sample3 <- generate_sample3()
-
-# Combine all samples
-all_samples <- bind_rows(sample1, sample2, sample3)
+# Generate all samples using pmap
+all_samples <- sample_configs |> 
+  pmap(generate_sample)
 
 cat("\nData summary:\n")
 print(all_samples %>%
