@@ -399,9 +399,3 @@ print(dbListTables(con))
 
 # Close connection
 dbDisconnect(con, shutdown = TRUE)
-
-cat("\n✓ Successfully created flow_cytometry_data.duckdb with flow_data and flow_summary tables\n")
-cat("✓ Total events: 60,000 (20,000 per sample)\n")
-cat("✓ Columns: sample_id, event_id, FSC-A, SSC-A, FSC-H, FL1-A, FL2-A, FL3-A\n")
-
-usethis::use_data(DATASET, overwrite = TRUE)
