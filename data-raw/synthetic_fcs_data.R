@@ -81,6 +81,7 @@ generate_sample <- function(
   fl1_a <- numeric(n_events)
   fl2_a <- numeric(n_events)
   fl3_a <- numeric(n_events)
+  population <- character(n_events)
   
   current_idx <- 1
   
@@ -94,6 +95,7 @@ generate_sample <- function(
     fl1_a[current_idx:end_idx] <- generate_live_cells(n_debris)
     fl2_a[current_idx:end_idx] <- rlnorm(n_debris, log(200), 0.4)
     fl3_a[current_idx:end_idx] <- rlnorm(n_debris, log(200), 0.4)
+    population[current_idx:end_idx] <- "debris"
     current_idx <- end_idx + 1
   }
   
@@ -107,6 +109,7 @@ generate_sample <- function(
     fl1_a[current_idx:end_idx] <- generate_dead_cells(n_dead)
     fl2_a[current_idx:end_idx] <- rlnorm(n_dead, log(400), 0.3)
     fl3_a[current_idx:end_idx] <- rlnorm(n_dead, log(400), 0.3)
+    population[current_idx:end_idx] <- "dead"
     current_idx <- end_idx + 1
   }
   
@@ -120,6 +123,7 @@ generate_sample <- function(
     fl1_a[current_idx:end_idx] <- generate_live_cells(n_singlets)
     fl2_a[current_idx:end_idx] <- generate_marker(n_singlets, fl2_positive_pct)
     fl3_a[current_idx:end_idx] <- generate_marker(n_singlets, fl3_positive_pct)
+    population[current_idx:end_idx] <- "live_singlet"
     current_idx <- end_idx + 1
   }
   
@@ -133,15 +137,18 @@ generate_sample <- function(
     fl1_a[current_idx:end_idx] <- generate_live_cells(n_doublets)
     fl2_a[current_idx:end_idx] <- generate_marker(n_doublets, fl2_positive_pct)
     fl3_a[current_idx:end_idx] <- generate_marker(n_doublets, fl3_positive_pct)
+    population[current_idx:end_idx] <- "doublet"
   }
   
-  # Add outliers
+  # Mark outliers
   n_outliers <- round(n_events * outlier_pct)
   outlier_idx <- sample(1:n_events, n_outliers)
   fsc_a[outlier_idx] <- fsc_a[outlier_idx] * runif(n_outliers, 0.1, 3)
   ssc_a[outlier_idx] <- ssc_a[outlier_idx] * runif(n_outliers, 0.1, 3)
+  population[outlier_idx] <- paste0(population[outlier_idx], "_outlier")
   
-  tibble(
+  # Create data frame
+  df <- tibble(
     sample_id = sample_id,
     event_id = 1:n_events,
     `FSC-A` = pmax(0, fsc_a),
@@ -149,8 +156,25 @@ generate_sample <- function(
     `FSC-H` = pmax(0, fsc_h),
     `FL1-A` = pmax(0, fl1_a),
     `FL2-A` = pmax(0, fl2_a),
-    `FL3-A` = pmax(0, fl3_a)
+    `FL3-A` = pmax(0, fl3_a),
+    population = population
   )
+  
+  # Calculate quantile thresholds from live populations only
+  live_populations <- c("live_singlet", "doublet")
+  live_events <- df$population %in% live_populations
+  
+  fsc_threshold <- quantile(df$`FSC-A`[live_events], 0.99)
+  ssc_threshold <- quantile(df$`SSC-A`[live_events], 0.99)
+  fl1_threshold <- 5000  # Live/dead discriminator
+  
+  # Create id_live gate - excludes debris, dead cells, and outliers
+  df$id_live <- !(df$population %in% c("debris", "debris_outlier", "dead", "dead_outlier")) &
+                 df$`FL1-A` < fl1_threshold &
+                 df$`FSC-A` <= fsc_threshold &
+                 df$`SSC-A` <= ssc_threshold
+  
+  df
 }
 
 # Define sample configurations as a tibble
@@ -172,6 +196,8 @@ sample_configs <- tibble(
 # Generate all samples using pmap
 all_samples <- sample_configs |> 
   pmap(generate_sample)
+
+tibble(exprs = all_samples)
 
 cat("\nData summary:\n")
 print(all_samples %>%
