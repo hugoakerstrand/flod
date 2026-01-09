@@ -52,7 +52,6 @@ generate_marker <- function(n, pct_positive) {
   sample(c(neg, pos))  # Shuffle
 }
 
-# Generic sample generator that accepts individual parameters
 generate_sample <- function(
   sample_id,
   n_events,
@@ -160,19 +159,46 @@ generate_sample <- function(
     population = population
   )
   
-  # Calculate quantile thresholds from live populations only
+  # Gate 1: id_live (FSC-A vs FL1-A)
+  # Calculate thresholds from live populations only
   live_populations <- c("live_singlet", "doublet")
   live_events <- df$population %in% live_populations
   
-  fsc_threshold <- quantile(df$`FSC-A`[live_events], 0.99)
-  ssc_threshold <- quantile(df$`SSC-A`[live_events], 0.99)
+  fsc_threshold_live <- quantile(df$`FSC-A`[live_events], 0.99)
   fl1_threshold <- 5000  # Live/dead discriminator
   
   # Create id_live gate - excludes debris, dead cells, and outliers
   df$id_live <- !(df$population %in% c("debris", "debris_outlier", "dead", "dead_outlier")) &
                  df$`FL1-A` < fl1_threshold &
-                 df$`FSC-A` <= fsc_threshold &
-                 df$`SSC-A` <= ssc_threshold
+                 df$`FSC-A` <= fsc_threshold_live
+  
+# Gate 2: id_size (FSC-A vs SSC-A, applied to id_live population)
+# Use Mahalanobis distance for elliptical gating (standard in flow cytometry)
+if (sum(df$id_live) > 2) {  # Need at least 3 points for covariance
+  # Extract FSC-A and SSC-A from id_live population
+  live_data <- df[df$id_live, c("FSC-A", "SSC-A")]
+  
+  # Calculate center and covariance matrix
+  center <- colMeans(live_data)
+  cov_mat <- cov(live_data)
+  
+  # Calculate Mahalanobis distance for all events
+  mahal_dist <- mahalanobis(
+    df[, c("FSC-A", "SSC-A")],
+    center = center,
+    cov = cov_mat
+  )
+  
+  # Use chi-square quantile for threshold (2 df for 2D data)
+  # 0.99 quantile creates a gate that includes 99% of the live population
+  threshold <- qchisq(0.99, df = 2)
+  
+  # Create id_size gate - elliptical boundary
+  df$id_size <- df$id_live & (mahal_dist <= threshold)
+} else {
+  # Fallback if not enough live events
+  df$id_size <- df$id_live
+}
   
   df
 }
