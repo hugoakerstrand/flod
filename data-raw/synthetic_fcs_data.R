@@ -3,6 +3,7 @@
 
 library(tidyverse)
 library(duckdb)
+library(connections)
 
 set.seed(20260109)  # For reproducibility
 
@@ -221,69 +222,20 @@ sample_configs <- tibble(
 
 # Generate all samples using pmap
 all_samples <- sample_configs |> 
-  pmap(generate_sample)
-
-tibble(exprs = all_samples)
-
-cat("\nData summary:\n")
-print(all_samples %>%
-  group_by(sample_id) %>%
-  summarise(
-    n_events = n(),
-    mean_FSC_A = mean(`FSC-A`),
-    mean_FL1_A = mean(`FL1-A`),
-    mean_FL2_A = mean(`FL2-A`),
-    mean_FL3_A = mean(`FL3-A`)
-  ))
+  pmap(generate_sample) |> 
+  {\(x) tibble(exprs = x)}()
 
 # Create DuckDB database
-cat("\nCreating DuckDB database...\n")
-con <- dbConnect(duckdb(), dbdir = "flow_cytometry_data.duckdb")
+dbdir <- "inst/extdata/flow_cytometry_data.duckdb"
+con <- connection_open(duckdb(), dbdir = dbdir)
 
 # Write data to DuckDB
-dbWriteTable(con, "flow_data", all_samples, overwrite = TRUE)
-
-# Verify the data
-cat("\nVerifying data in DuckDB:\n")
-result <- dbGetQuery(con, "SELECT sample_id, COUNT(*) as n_events FROM flow_data GROUP BY sample_id")
-print(result)
+duckdb::dbWriteTable(con, "experiment1", all_samples, overwrite = TRUE)
 
 # Show sample of data
-cat("\nSample of data from each sample:\n")
-sample_preview <- dbGetQuery(con, "
-  SELECT * FROM flow_data
-  WHERE event_id <= 5
-  ORDER BY sample_id, event_id
-")
-print(sample_preview)
-
-# Create summary statistics table
-cat("\nCreating summary statistics table...\n")
-dbExecute(con, "
-  CREATE OR REPLACE TABLE flow_summary AS
-  SELECT
-    sample_id,
-    COUNT(*) as total_events,
-    AVG(\"FSC-A\") as mean_fsc_a,
-    STDDEV(\"FSC-A\") as sd_fsc_a,
-    AVG(\"SSC-A\") as mean_ssc_a,
-    AVG(\"FL1-A\") as mean_fl1_a,
-    AVG(\"FL2-A\") as mean_fl2_a,
-    AVG(\"FL3-A\") as mean_fl3_a,
-    -- Estimate live/dead based on FL1-A threshold
-    SUM(CASE WHEN \"FL1-A\" < 5000 THEN 1 ELSE 0 END) as estimated_live_cells,
-    SUM(CASE WHEN \"FL1-A\" >= 5000 THEN 1 ELSE 0 END) as estimated_dead_cells
-  FROM flow_data
-  GROUP BY sample_id
-")
-
-summary_stats <- dbGetQuery(con, "SELECT * FROM flow_summary")
-cat("\nSummary statistics:\n")
-print(summary_stats)
-
-# List all tables in the database
-cat("\nTables in database:\n")
-print(dbListTables(con))
+tbl(con, "experiment1") |> 
+  as_duckdb_tibble() |> 
+  {\(x) map(x[["exprs"]], head)}()
 
 # Close connection
-dbDisconnect(con, shutdown = TRUE)
+connections::connection_close(con)
