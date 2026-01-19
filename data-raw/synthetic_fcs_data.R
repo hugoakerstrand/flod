@@ -3,12 +3,12 @@
 
 library(tidyverse)
 library(duckdb)
+library(duckplyr)
 library(connections)
 
 set.seed(20260109)  # For reproducibility
 
 generate_sample <- function(
-  sample_id,
   n_events,
   debris_pct,
   dead_pct,
@@ -103,7 +103,6 @@ generate_sample <- function(
   
   # Create data frame
   df <- tibble(
-    sample_id = sample_id,
     event_id = 1:n_events,
     `FSC-A` = pmax(0, fsc_a),
     `SSC-A` = pmax(0, ssc_a),
@@ -160,7 +159,6 @@ if (sum(df$id_live) > 2) {  # Need at least 3 points for covariance
 
 # Define sample configurations as a tibble
 sample_configs <- tibble(
-  sample_id = c("Sample1", "Sample2", "Sample3"),
   n_events = c(20000, 20000, 20000),
   debris_pct = c(0.02, 0.025, 0.05),
   dead_pct = c(0.05, 0.06, 0.90),
