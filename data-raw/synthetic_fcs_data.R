@@ -21,10 +21,18 @@ generate_sample <- function(
   fl3_positive_pct,
   outlier_pct
 ) {
-  # Calculate population sizes
+# Calculate population sizes - ensure they sum to n_events
   n_debris <- round(n_events * debris_pct)
   n_dead <- round(n_events * dead_pct)
+  # Calculate n_live as remainder to guarantee exact sum
   n_live <- n_events - n_debris - n_dead
+  
+  # Handle edge case where percentages sum to > 1
+  if (n_live < 0) {
+    n_live <- runif(1, 100, 600)
+    n_dead <- n_events - n_debris - n_live
+  }
+  
   n_singlets <- round(n_live * singlet_pct)
   n_doublets <- n_live - n_singlets
   
@@ -99,10 +107,10 @@ generate_sample <- function(
   outlier_idx <- sample(1:n_events, n_outliers)
   fsc_a[outlier_idx] <- fsc_a[outlier_idx] * runif(n_outliers, 0.1, 3)
   ssc_a[outlier_idx] <- ssc_a[outlier_idx] * runif(n_outliers, 0.1, 3)
-  population[outlier_idx] <- paste0(population[outlier_idx], "_outlier")
+  population[outlier_idx] <- population[outlier_idx]
   
   # Create data frame
-  df <- tibble(
+  tibble(
     event_id = 1:n_events,
     `FSC-A` = pmax(0, fsc_a),
     `SSC-A` = pmax(0, ssc_a),
@@ -112,64 +120,21 @@ generate_sample <- function(
     `FL3-A` = pmax(0, fl3_a),
     population = population
   )
-  
-  # Gate 1: id_live (FSC-A vs FL1-A)
-  # Calculate thresholds from live populations only
-  live_populations <- c("live_singlet", "doublet")
-  live_events <- df$population %in% live_populations
-  
-  fsc_threshold_live <- quantile(df$`FSC-A`[live_events], 0.99)
-  fl1_threshold <- 5000  # Live/dead discriminator
-  
-  # Create id_live gate - excludes debris, dead cells, and outliers
-  df$id_live <- !(df$population %in% c("debris", "debris_outlier", "dead", "dead_outlier")) &
-                 df$`FL1-A` < fl1_threshold &
-                 df$`FSC-A` <= fsc_threshold_live
-  
-# Gate 2: id_size (FSC-A vs SSC-A, applied to id_live population)
-# Use Mahalanobis distance for elliptical gating (standard in flow cytometry)
-if (sum(df$id_live) > 2) {  # Need at least 3 points for covariance
-  # Extract FSC-A and SSC-A from id_live population
-  live_data <- df[df$id_live, c("FSC-A", "SSC-A")]
-  
-  # Calculate center and covariance matrix
-  center <- colMeans(live_data)
-  cov_mat <- cov(live_data)
-  
-  # Calculate Mahalanobis distance for all events
-  mahal_dist <- mahalanobis(
-    df[, c("FSC-A", "SSC-A")],
-    center = center,
-    cov = cov_mat
-  )
-  
-  # Use chi-square quantile for threshold (2 df for 2D data)
-  # 0.99 quantile creates a gate that includes 99% of the live population
-  threshold <- qchisq(0.99, df = 2)
-  
-  # Create id_size gate - elliptical boundary
-  df$id_size <- df$id_live & (mahal_dist <= threshold)
-} else {
-  # Fallback if not enough live events
-  df$id_size <- df$id_live
-}
-  
-  df
 }
 
 # Define sample configurations as a tibble
 sample_configs <- tibble(
-  n_events = c(20000, 20000, 20000),
-  debris_pct = c(0.02, 0.025, 0.05),
-  dead_pct = c(0.05, 0.06, 0.90),
-  singlet_pct = c(0.95, 0.96, 0.85),
-  fsc_mean = c(100000, 95000, 90000),
-  fsc_sd = c(0.25, 0.25, 0.3),
-  ssc_mean = c(60000, 58000, 55000),
-  ssc_sd = c(0.35, 0.35, 0.4),
-  fl2_positive_pct = c(runif(1, 0.25, 0.75), 0.05, 0.3),
-  fl3_positive_pct = c(runif(1, 0.25, 0.75), 0.05, 0.3),
-  outlier_pct = c(0.005, 0.005, 0.005)
+  n_events = rep(20000, 8),
+  debris_pct = runif(8, 0.001, 0.5),
+  dead_pct = c(rexp(7, 25), 0.9),
+  singlet_pct = runif(8, 0.85, 0.99),
+  fsc_mean = runif(8, 85000, 100000),
+  fsc_sd = runif(8, 0.25, 0.4),
+  ssc_mean = runif(8, 55000, 60000),
+  ssc_sd = runif(8, 0.35, 0.4),
+  fl2_positive_pct = c(runif(6, 0.25, 0.75), 0.05, 0.3),
+  fl3_positive_pct = c(runif(6, 0.25, 0.75), 0.05, 0.3),
+  outlier_pct = runif(8, 0, 0.005)
 )
 
 # Generate all samples using pmap

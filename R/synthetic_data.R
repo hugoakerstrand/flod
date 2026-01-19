@@ -23,7 +23,7 @@ generate_debris <- function(n) {
 
 # Helper function to generate live cells (low FL1-A)
 generate_live_cells <- function(n) {
-  rlnorm(n, log(500), 0.4)
+  rlnorm(n, 0, 0.5)
 }
 
 # Helper function to generate dead cells (high FL1-A)
