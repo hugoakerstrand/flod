@@ -61,11 +61,11 @@ synthetic_sample <- function(
     # Create distribution of FSC-H based on cell population
     mutate(
       # Create singlet indicator
-      singlet = runif(n()) < singlet_pct,
+      Singlet = runif(n()) < singlet_pct,
 
       # Generate FSC-H based on singlet status
       `FSC-H` = case_when(
-        singlet ~ `FSC-A` *
+        Singlet ~ `FSC-A` *
           rnorm(n(), mean = 1, sd = 0.15 / pmax(`FSC-A` / fsc_mean, 0.1)),
         .default = `FSC-A` *
           rnorm(n(), mean = 0.3 + 0.2 * pmax(`FSC-A` / fsc_mean, 0), sd = 0.1),
@@ -90,7 +90,26 @@ synthetic_sample <- function(
         rlnorm(n(), meanlog = log(fl3_mean), sdlog = fl3_sd),
         rlnorm(n(), meanlog = log(5), sdlog = fl3_sd)
       )
-    )
+    ) |>
+
+    # Add identifier columns (equivalent to gating)
+    mutate(
+      Live = population == "live",
+      Size = {
+        data_matrix <- as.matrix(pick(`FSC-A`, `SSC-A`))
+        center <- c(median(`FSC-A`), median(`SSC-A`))
+        cov_matrix <- cov(data_matrix)
+
+        distances <- mahalanobis(data_matrix, center, cov_matrix)
+        threshold <- quantile(distances, 0.925)
+
+        distances <= threshold
+      }
+    ) |>
+    relocate(Singlet, FL2_positive, FL3_positive, .after = Size) |>
+
+    # Drop population column
+    select(!population)
 
   df
 }
