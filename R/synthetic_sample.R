@@ -127,8 +127,9 @@ synthetic_sample <- function(
         distances <- mahalanobis(data_matrix, center, cov_matrix)
         threshold <- quantile(distances, 0.925)
 
-        distances <= threshold
-      }
+        distances <= threshold & Live
+      },
+      Singlet = Singlet & Live
     ) |>
     relocate(Singlet, FL2_positive, FL3_positive, .after = Size) |>
 
