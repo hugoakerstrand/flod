@@ -77,18 +77,42 @@ synthetic_sample <- function(
       `FL2_positive` = runif(n()) < fl2_positive_pct,
       `FL3_positive` = runif(n()) < fl3_positive_pct,
 
-      # Generate FL2-A based on FL2_positive status
+      # Generate FL2-A with gamma distribution that has variable heavy tail
+      # Some samples will have substantial overlap with negative population
       `FL2-A` = if_else(
         FL2_positive,
-        rlnorm(n(), meanlog = log(fl2_mean), sdlog = fl2_sd),
-        rlnorm(n(), meanlog = log(5), sdlog = fl2_sd)
+        {
+          # Positive population: gamma with variable tail intensity
+          shape_param <- sample(c(0.1, 0.4, 1, 4), 1) # Lower values = much heavier tail
+          scale_param <- fl2_mean / shape_param
+          # Add jitter to the floor: sometimes allow values as low as 50, sometimes 200
+          floor_value <- 5
+          pmax(
+            rgamma(n(), shape = shape_param, scale = scale_param),
+            floor_value
+          )
+        },
+        # Negative population: tight distribution at low values (centered ~5)
+        rlnorm(n(), meanlog = log(5), sdlog = 0.3)
       ),
 
-      # Generate FL3-A based on FL3_positive status
+      # Generate FL3-A with gamma distribution that has variable heavy tail
+      # Some samples will have substantial overlap with negative population
       `FL3-A` = if_else(
         FL3_positive,
-        rlnorm(n(), meanlog = log(fl3_mean), sdlog = fl3_sd),
-        rlnorm(n(), meanlog = log(5), sdlog = fl3_sd)
+        {
+          # Positive population: gamma with variable tail intensity
+          shape_param <- sample(c(0.1, 0.4, 1, 4), 1) # Lower values = much heavier tail
+          scale_param <- fl3_mean / shape_param
+          # Add jitter to the floor: sometimes allow values as low as 50, sometimes 200
+          floor_value <- 5
+          pmax(
+            rgamma(n(), shape = shape_param, scale = scale_param),
+            floor_value
+          )
+        },
+        # Negative population: tight distribution at low values (centered ~5)
+        rlnorm(n(), meanlog = log(5), sdlog = 0.3)
       )
     ) |>
 
