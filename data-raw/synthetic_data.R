@@ -13,12 +13,12 @@ normal_experiments <- map(1:7, function(name, id) {
 }) |>
   setNames(c(paste0("experiment", 1:7)))
 
-# Experiment 10 has sample 6 with low levels of viable cells (i.e. many dead cells)
+# Experiment 8 has sample 8 with low levels of viable cells (i.e. many dead cells)
 set.seed(20260109)
-experiment10 <- map(1:5, ~ synthetic_sample(n = 15000)) |>
+experiment8 <- map(1:7, ~ synthetic_sample(n = 15000)) |>
   {
     \(x) {
-      x[[6]] <- synthetic_sample(live_pct = 0.1)
+      x[[8]] <- synthetic_sample(live_pct = 0.1)
       x
     }
   }() |>
@@ -26,10 +26,10 @@ experiment10 <- map(1:5, ~ synthetic_sample(n = 15000)) |>
     \(x) tibble(exprs = x)
   }() |>
   list() |>
-  setNames("experiment10")
+  setNames("experiment8")
 
 # Common list for writing to output
-common_list <- c(normal_experiments, experiment10)
+common_list <- c(normal_experiments, experiment8)
 
 # Create DuckDB database
 dbdir <- "inst/extdata/synthetic_data.duckdb"
