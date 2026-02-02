@@ -16,9 +16,31 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(flod)
+library(flowCore)
 ```
 
-The flowSet is an S4 class and a convenient way of storing related .fcs files in
-a single object. However, being an S4 object, it is naturally restricted in its
+## Getting data into your working environment
+Read in the .fcs files using `flowCore::read.flowSet()`. 
+The flowSet is an S4 class and a convenient way of storing related .fcs files in a single object. 
+However, being an S4 object, it is naturally restricted in its
 scope to the registered methods and, thus, foregoes potentially relevant
 functions for EDA, transformation, and modelling from other packages.
+
+```{r}
+data(GvHD, package = "flowCore")
+GvHD
+```
+
+Turn it into a `tibble` using `flod::to_tibble()`
+
+```{r}
+flod::to_tibble(GvHD)
+```
+
+The function defaults to all slots of the flowSet, or accepts a user specified selection:
+
+```{r}
+to_tibble(GvHD, c("exprs", "keywords"))
+```
+
+See `?to_tibble` for a list of accepted keywords.
