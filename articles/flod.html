@@ -61,12 +61,67 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://hugoakerstrand.github.io/flod/">flod</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; NB! `flod` is under heavy development and subject to sweeping changes</span></span></code></pre></div>
-<p>The flowSet is an S4 class and a convenient way of storing related
-.fcs files in a single object. However, being an S4 object, it is
-naturally restricted in its scope to the registered methods and, thus,
-foregoes potentially relevant functions for EDA, transformation, and
-modelling from other packages.</p>
+<span><span class="co">#&gt; NB! `flod` is under heavy development and subject to sweeping changes</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">flowCore</span><span class="op">)</span></span></code></pre></div>
+<div class="section level2">
+<h2 id="getting-data-into-your-working-environment">Getting data into your working environment<a class="anchor" aria-label="anchor" href="#getting-data-into-your-working-environment"></a>
+</h2>
+<p>Read in the .fcs files using <code><a href="https://rdrr.io/pkg/flowCore/man/read.flowSet.html" class="external-link">flowCore::read.flowSet()</a></code>.
+The flowSet is an S4 class and a convenient way of storing related .fcs
+files in a single object. However, being an S4 object, it is naturally
+restricted in its scope to the registered methods and, thus, foregoes
+potentially relevant functions for EDA, transformation, and modelling
+from other packages.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">GvHD</span>, package <span class="op">=</span> <span class="st">"flowCore"</span><span class="op">)</span></span>
+<span><span class="va">GvHD</span></span>
+<span><span class="co">#&gt; A flowSet with 35 experiments.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; An object of class 'AnnotatedDataFrame'</span></span>
+<span><span class="co">#&gt;   rowNames: s5a01 s5a02 ... s10a07 (35 total)</span></span>
+<span><span class="co">#&gt;   varLabels: Patient Visit ... name (5 total)</span></span>
+<span><span class="co">#&gt;   varMetadata: labelDescription</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; column names(8): FSC-H SSC-H ... FL4-H Time</span></span></code></pre></div>
+<p>Turn it into a <code>tibble</code> using
+<code><a href="../reference/to_tibble.html">flod::to_tibble()</a></code></p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">flod</span><span class="fu">::</span><span class="fu"><a href="../reference/to_tibble.html">to_tibble</a></span><span class="op">(</span><span class="va">GvHD</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 35 × 4</span></span></span>
+<span><span class="co">#&gt;    sample_names exprs              keywords           meta_data$Patient $Visit</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;list&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;list&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> s5a01        <span style="color: #949494;">&lt;dbl [3,420 × 8]&gt;</span>  <span style="color: #949494;">&lt;named list [170]&gt;</span> 5                 1     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> s5a02        <span style="color: #949494;">&lt;dbl [3,405 × 8]&gt;</span>  <span style="color: #949494;">&lt;named list [170]&gt;</span> 5                 2     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> s5a03        <span style="color: #949494;">&lt;dbl [3,435 × 8]&gt;</span>  <span style="color: #949494;">&lt;named list [170]&gt;</span> 5                 3     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> s5a04        <span style="color: #949494;">&lt;dbl [8,550 × 8]&gt;</span>  <span style="color: #949494;">&lt;named list [170]&gt;</span> 5                 4     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> s5a05        <span style="color: #949494;">&lt;dbl [10,410 × 8]&gt;</span> <span style="color: #949494;">&lt;named list [170]&gt;</span> 5                 5     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> s5a06        <span style="color: #949494;">&lt;dbl [3,750 × 8]&gt;</span>  <span style="color: #949494;">&lt;named list [170]&gt;</span> 5                 6     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> s5a07        <span style="color: #949494;">&lt;dbl [13,979 × 8]&gt;</span> <span style="color: #949494;">&lt;named list [170]&gt;</span> 5                 7     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> s6a01        <span style="color: #949494;">&lt;dbl [2,205 × 8]&gt;</span>  <span style="color: #949494;">&lt;named list [167]&gt;</span> 6                 1     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> s6a02        <span style="color: #949494;">&lt;dbl [13,350 × 8]&gt;</span> <span style="color: #949494;">&lt;named list [167]&gt;</span> 6                 2     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> s6a03        <span style="color: #949494;">&lt;dbl [11,610 × 8]&gt;</span> <span style="color: #949494;">&lt;named list [167]&gt;</span> 6                 3     </span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 25 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 3 more variables: meta_data$Days &lt;int&gt;, $Grade &lt;int&gt;, $name &lt;chr&gt;</span></span></span></code></pre></div>
+<p>The function defaults to all slots of the flowSet, or accepts a user
+specified selection:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/to_tibble.html">to_tibble</a></span><span class="op">(</span><span class="va">GvHD</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exprs"</span>, <span class="st">"keywords"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 35 × 2</span></span></span>
+<span><span class="co">#&gt;    exprs              keywords          </span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;list&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;list&gt;</span>            </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> <span style="color: #949494;">&lt;dbl [3,420 × 8]&gt;</span>  <span style="color: #949494;">&lt;named list [170]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> <span style="color: #949494;">&lt;dbl [3,405 × 8]&gt;</span>  <span style="color: #949494;">&lt;named list [170]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> <span style="color: #949494;">&lt;dbl [3,435 × 8]&gt;</span>  <span style="color: #949494;">&lt;named list [170]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> <span style="color: #949494;">&lt;dbl [8,550 × 8]&gt;</span>  <span style="color: #949494;">&lt;named list [170]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> <span style="color: #949494;">&lt;dbl [10,410 × 8]&gt;</span> <span style="color: #949494;">&lt;named list [170]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> <span style="color: #949494;">&lt;dbl [3,750 × 8]&gt;</span>  <span style="color: #949494;">&lt;named list [170]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> <span style="color: #949494;">&lt;dbl [13,979 × 8]&gt;</span> <span style="color: #949494;">&lt;named list [170]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> <span style="color: #949494;">&lt;dbl [2,205 × 8]&gt;</span>  <span style="color: #949494;">&lt;named list [167]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> <span style="color: #949494;">&lt;dbl [13,350 × 8]&gt;</span> <span style="color: #949494;">&lt;named list [167]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> <span style="color: #949494;">&lt;dbl [11,610 × 8]&gt;</span> <span style="color: #949494;">&lt;named list [167]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 25 more rows</span></span></span></code></pre></div>
+<p>See <code><a href="../reference/to_tibble.html">?to_tibble</a></code> for a list of accepted keywords.</p>
+</div>
   </main>
 </div>
 
