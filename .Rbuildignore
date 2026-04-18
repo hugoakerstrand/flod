@@ -10,3 +10,5 @@
 ^doc$
 ^Meta$
 ^data-raw$
+^vignettes/\.quarto$
+^vignettes/*_files$
