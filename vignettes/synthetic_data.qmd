@@ -1,0 +1,39 @@
+---
+title: "Synthetic flow cytometry data"
+vignette: >
+  %\VignetteIndexEntry{Synthetic flow cytometry data}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: '#>'
+---
+
+```{r}
+#| label: setup
+library(flod)
+library(ggplot2)
+```
+
+```{r}
+con <- DBI::dbConnect(duckdb::duckdb(), system.file("extdata", "synthetic_data.duckdb", package = "flod"))
+tables <- DBI::dbListTables(con)
+tables
+```
+
+```{r}
+sample1 <- DBI::dbGetQuery(con, "
+  SELECT unnest(exprs, recursive := true) FROM experiment1 WHERE rowid = 0
+")
+head(sample1)
+```
+
+```{r}
+
+
+ggplot(sample1, aes(x = `FSC-A`, y = `FL1-A`)) +
+  geom_point(alpha = 0.3, size = 0.5) +
+  theme_minimal()
+```
+
