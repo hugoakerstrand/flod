@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/hugoakerstrand/flod/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/hugoakerstrand/flod/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-## Introduction
+## Overview
 flod is an R package for statistical learning on flow cytometry data. 
 
 Its primary concern is getting your flow cytometry data accessible to R's rich ecosystem for modeling, for example [tidymodels](https://www.tidymodels.org/).

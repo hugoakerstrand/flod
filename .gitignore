@@ -3,6 +3,7 @@ inst/doc
 docs
 /doc/
 /Meta/
+README.html
 
 /.quarto/
 **/*.quarto_ipynb

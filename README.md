@@ -12,7 +12,7 @@ coverage](https://codecov.io/gh/hugoakerstrand/flod/graph/badge.svg)](https://ap
 [![R-CMD-check](https://github.com/hugoakerstrand/flod/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/hugoakerstrand/flod/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-## Introduction
+## Overview
 
 flod is an R package for statistical learning on flow cytometry data.
 
