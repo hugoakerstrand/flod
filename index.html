@@ -61,32 +61,32 @@
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <p>flod is an R package for statistical learning on flow cytometry data.</p>
-<p>Its primary concern is getting your flow cytometry data accessible to R’s rich ecosystem for modeling, for example <a href="https://www.tidymodels.org/" class="external-link">tidymodels</a>.</p>
-<p>Additionally, flod provides a few convenience functions for feature engineering, visualizing, and reporting of flow cytometry data.</p>
+<p>Its primary concern is making your data accessible to R’s rich modeling ecosystem, for example <a href="https://www.tidymodels.org/" class="external-link">tidymodels</a>.</p>
+<p>Additionally, flod provides convenience functions for feature engineering, visualization, and reporting.</p>
 </div>
 <div class="section level2">
 <h2 id="background">Background<a class="anchor" aria-label="anchor" href="#background"></a>
 </h2>
-<p>Flow cytometry quantifies light scattering properties of a cell to measure its size, granularity, and any biomolecules that have been pre-labelled by the experimentalist.</p>
-<p>These values are stored in the .fcs file format that contains a feature matrix for recorded events, sample meta data, and run information.</p>
-<p>Typically, the data is then analyzed in proprietary point-and-click software by sequentially filtering down expression and density of events in one or two dimensions at a time.</p>
-<p>The power of flow cytometry lies in a reasonable performance metrics across the board: the operator can analyze thousands of cells per second for several markers of various nature.</p>
-<p>Combined with a relatively low cost-per-run and ease of operation, flow cytometry has become a pillar of modern cell based research.</p>
+<p>Flow cytometry quantifies the light scattering properties of a cell to measure its size, granularity, and any biomolecules pre-labelled by the experimentalist.</p>
+<p>These values are stored in the .fcs file format, which contains a feature matrix of recorded events, sample metadata, and run information.</p>
+<p>Typically, the data is then analyzed in proprietary point-and-click software by sequentially filtering events on expression and density, one or two dimensions at a time.</p>
+<p>The technique’s strength is its all-round performance: an operator can interrogate thousands of cells per second across markers of varied nature, suitable for both routine and exploratory analysis.</p>
+<p>Combined with low cost-per-run and ease of operation, this has made flow cytometry a pillar of modern cell-based research.</p>
 </div>
 <div class="section level2">
-<h2 id="package-motivation">Package motivation<a class="anchor" aria-label="anchor" href="#package-motivation"></a>
+<h2 id="motivation">Motivation<a class="anchor" aria-label="anchor" href="#motivation"></a>
 </h2>
-<p>flod makes flow cytometry data accessible to statistical analysis and modelling, by functions to read in .fcs files and providing the feature engineering expected by flow cytometry experts.</p>
-<p>More specifically, it was developed to adress the following challenges of standard flow cytometry data analysis:</p>
+<p>flod makes cytometry data accessible to statistical analysis, modelling, visualization and reporting, by reading .fcs files and providing the feature engineering expected by domain experts.</p>
+<p>More specifically, it was developed to address the following challenges of the standard analysis workflow:</p>
 <ul>
 <li>
-<strong>Low reproducibility</strong>: while ease of use software has made flow cytometry data analysis accessible, it suffers from low reproducibility with arbirtary choices made by the analyst.</li>
+<strong>Not reproducible</strong>: ease-of-use software invites arbitrary, undocumented choices by the analyst.</li>
 <li>
-<strong>Time consuming</strong>: analysis time is in hours making routine analysis a big time sink.</li>
+<strong>Slow</strong>: routine analysis takes hours.</li>
 <li>
-<strong>Unsuited for production environment</strong>: analysis is in proprietary software is not approved by regulatory agencies such as FDA, as of 2026-04-30.</li>
+<strong>Not production-ready</strong>: as of 2026-04-30, proprietary softwares for flow cytometry analaysis are not sanctioned by regulators such as the FDA.</li>
 <li>
-<strong>Inaccessible to more advanced tools</strong>: lifting data analysis into R puts it in lockstep with current state-of-art tools for statistical modelling, visualization, and workflows.</li>
+<strong>Cut off from modern tooling</strong>: staying outside R isolates analysts from state-of-the-art statistical modelling, visualization, and workflow tools.</li>
 </ul>
 </div>
 </div>

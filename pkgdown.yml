@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   flod: flod.html
   synthetic_data: synthetic_data.html
-last_built: 2026-04-30T10:43Z
+last_built: 2026-04-30T18:03Z
 urls:
   reference: https://hugoakerstrand.github.io/flod/reference
   article: https://hugoakerstrand.github.io/flod/articles
