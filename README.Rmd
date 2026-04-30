@@ -47,4 +47,4 @@ More specifically, it was developed to adress the following challenges of standa
 - **Low reproducibility**: while ease of use software has made flow cytometry data analysis accessible, it suffers from low reproducibility with arbirtary choices made by the analyst.
 - **Time consuming**: analysis time is in hours making routine analysis a big time sink.
 - **Unsuited for production environment**: analysis is in proprietary software is not approved by regulatory agencies such as FDA, as of 2026-04-30.
-- **Inaccessible to more advanced statistical tools**: lifting data analysis into R puts it in lockstep with current state-of-art tools for statistical modelling.
+- **Inaccessible to more advanced tools**: lifting data analysis into R puts it in lockstep with current state-of-art tools for statistical modelling, visualization, and workflows.
