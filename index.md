@@ -1,6 +1,6 @@
 # flod
 
-## Introduction
+## Overview
 
 flod is an R package for statistical learning on flow cytometry data.
 
