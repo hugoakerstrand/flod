@@ -1,5 +1,5 @@
 ---
-title: "Synthetic flow cytometry data"
+title: "Overview: synthetic data"
 vignette: >
   %\VignetteIndexEntry{Synthetic flow cytometry data}
   %\VignetteEngine{quarto::html}
@@ -10,17 +10,22 @@ knitr:
     comment: '#>'
 ---
 
-```{r}
-#| label: setup
-library(flod)
-library(ggplot2)
-```
+flod ships with a small synthetic dataset inside of a DuckDB database: 
 
 ```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+library(duckdb)
+library(flod)
+
 con <- DBI::dbConnect(duckdb::duckdb(), system.file("extdata", "synthetic_data.duckdb", package = "flod"))
 tables <- DBI::dbListTables(con)
 tables
 ```
+
+It was designed for exposition of data visualization and modelling by providing a realistic set of experiments, including failed runs and dead samples.
 
 ```{r}
 sample1 <- DBI::dbGetQuery(con, "
@@ -28,6 +33,11 @@ sample1 <- DBI::dbGetQuery(con, "
 ")
 head(sample1)
 ```
+
+Every event also carries ground-truth labels for the gates it belongs to, which makes it well suited for teaching supervised approaches to gating and quality control.
+
+## Data visualization
+We'll start exploring the data to expose gating hierarchy and summary statistics:
 
 ```{r}
 ggplot(sample1, aes(x = `FSC-A`, y = `FL1-A`)) +
