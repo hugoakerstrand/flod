@@ -2,39 +2,52 @@
 
 ## Introduction
 
-flod is an R package for statistical learning on flow cytometry data in
-R. Its primary concern is getting your data as fast as possible into R’s
-rich ecosystem for modeling; which way you chose is then up to you but
-it was developed with [tidymodels](https://www.tidymodels.org/) in mind.
+flod is an R package for statistical learning on flow cytometry data.
 
-Additionally, flod also provides a few convenience functions for feature
-engineering, visualizing, and reporting based on domain knowledge of
-traditional flow cytometry analysis (e.g. using FlowJo).
+Its primary concern is getting your flow cytometry data accessible to
+R’s rich ecosystem for modeling, for example
+[tidymodels](https://www.tidymodels.org/).
 
-## Motivation
+Additionally, flod provides a few convenience functions for feature
+engineering, visualizing, and reporting of flow cytometry data.
 
-Flow cytometry is an abundant methodology for modern life science
-research. Typically, it involves analyzing whole cells (although
-particle applications do exist) for the expression of a specific set of
-proteins and/or other biomolecules. The analysis depends on reading
-light emission following labelling molecules of interest with probes
-that can be read by the machine. Typically using fluorescence emission
-from specific antibody-fluorochrome conjugates to your antigen of
-interest. The emission is read by the flow cytometer for each event,
-transformed into an expression value and stored in the universal .fcs
-file standard. The power of flow cytometry is that it comes with
-reasonable performance metrics across the board: the operator can
-analysis up to thousands of cells per second, for a number (up to more
-than a dozen) several markers, and its cost and difficult of use makes
-it an accessible machine in most modern facilities.
+## Background
 
-The motivation for developing `flod` is to adress one outstanding issue
-of flow cytometry: its analysis. Most flow cytometer experiments use a
-third party software for its analysis, which relies on a point-and-click
-GUI. While this has been pivotal to the huge success of flow cytometry,
-it makes the analysis suffer from low reproducibility, difficult to
-ensure integrity of data analysis that is time consuming that is largely
-repetitive. `flod` adress all these three points by lifting flow
-cytometry into R, where the operator can utilize the excellent ecosystem
-for data analysis and automation to ensure a reproducible and robust
-data analysis.
+Flow cytometry quantifies light scattering properties of a cell to
+measure its size, granularity, and any biomolecules that have been
+pre-labelled by the experimentalist.
+
+These values are stored in the .fcs file format that contains a feature
+matrix for recorded events, sample meta data, and run information.
+
+Typically, the data is then analyzed in proprietary point-and-click
+software by sequentially filtering down expression and density of events
+in one or two dimensions at a time.
+
+The power of flow cytometry lies in a reasonable performance metrics
+across the board: the operator can analyze thousands of cells per second
+for several markers of various nature.
+
+Combined with a relatively low cost-per-run and ease of operation, flow
+cytometry has become a pillar of modern cell based research.
+
+## Package motivation
+
+flod makes flow cytometry data accessible to statistical analysis and
+modelling, by functions to read in .fcs files and providing the feature
+engineering expected by flow cytometry experts.
+
+More specifically, it was developed to adress the following challenges
+of standard flow cytometry data analysis:
+
+- **Low reproducibility**: while ease of use software has made flow
+  cytometry data analysis accessible, it suffers from low
+  reproducibility with arbirtary choices made by the analyst.
+- **Time consuming**: analysis time is in hours making routine analysis
+  a big time sink.
+- **Unsuited for production environment**: analysis is in proprietary
+  software is not approved by regulatory agencies such as FDA, as of
+  2026-04-30.
+- **Inaccessible to more advanced statistical tools**: lifting data
+  analysis into R puts it in lockstep with current state-of-art tools
+  for statistical modelling.

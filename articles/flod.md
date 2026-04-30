@@ -1,6 +1,7 @@
 # flod
 
 ``` r
+
 library(flod)
 #> NB! `flod` is under heavy development and subject to sweeping changes
 library(flowCore)
@@ -17,6 +18,7 @@ potentially relevant functions for EDA, transformation, and modelling
 from other packages.
 
 ``` r
+
 data(GvHD, package = "flowCore")
 GvHD
 #> A flowSet with 35 experiments.
@@ -33,6 +35,7 @@ Turn it into a `tibble` using
 [`flod::to_tibble()`](https://hugoakerstrand.github.io/flod/reference/to_tibble.md)
 
 ``` r
+
 flod::to_tibble(GvHD)
 #> # A tibble: 35 × 4
 #>    sample_names exprs              keywords           meta_data$Patient $Visit
@@ -55,6 +58,7 @@ The function defaults to all slots of the flowSet, or accepts a user
 specified selection:
 
 ``` r
+
 to_tibble(GvHD, c("exprs", "keywords"))
 #> # A tibble: 35 × 2
 #>    exprs              keywords          
