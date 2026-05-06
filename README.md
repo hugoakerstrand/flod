@@ -16,47 +16,43 @@ coverage](https://codecov.io/gh/hugoakerstrand/flod/graph/badge.svg)](https://ap
 
 flod is an R package for statistical learning on flow cytometry data.
 
-Its primary concern is making your data accessible to R’s rich modeling
-ecosystem, for example [tidymodels](https://www.tidymodels.org/).
+Its primary concern is enabling access to R’s rich modeling ecosystem,
+for example [tidymodels](https://www.tidymodels.org/).
 
-Additionally, flod provides convenience functions for feature
-engineering, visualization, and reporting.
+To this end, flod provides functions to read in .fcs files, do feature
+engineering and visualize flow cytometry data.
 
 ## Background
 
-Flow cytometry quantifies the light scattering properties of a cell to
-measure its size, granularity, and any biomolecules pre-labelled by the
-experimentalist.
+Flow cytometry is a ubiquitous method in modern cell-based research that
+enables single-cell analysis of biomolecules and cell properties by
+measuring light scattering properties.
 
-These values are stored in the .fcs file format, which contains a
-feature matrix of recorded events, sample metadata, and run information.
+The method combines low cost-per-run, commercially accessible
+methodology and protocols, and a strong all-round performance: thousands
+of cells per second can be quantified for several biomolecules.
 
-Typically, the data is then analyzed in proprietary point-and-click
-software by sequentially filtering events on expression and density, one
-or two dimensions at a time.
-
-The technique’s strength is its all-round performance: an operator can
-interrogate thousands of cells per second across markers of varied
-nature, suitable for both routine and exploratory analysis.
-
-Combined with low cost-per-run and ease of operation, this has made flow
-cytometry a pillar of modern cell-based research.
+This produces large datasets, up to millions of cells across dozens of
+features, which are suitable for statistical analysis.
 
 ## Motivation
 
-flod makes cytometry data accessible to statistical analysis, modelling,
-visualization and reporting, by reading .fcs files and providing the
-feature engineering expected by domain experts.
+flod was developed to bridge flow cytometry data with R’s modeling
+ecosystem, providing both an .fcs reader and the feature engineering
+that flow cytometry experts expect.
 
-More specifically, it was developed to address the following challenges
-of the standard analysis workflow:
+Most flow cytometry analysis is done in proprietary point-and-click
+software. While these are great tools that make analysis accessible to
+the general public, they suffer from critical drawbacks that also
+motivated the development of flod:
 
-- **Not reproducible**: ease-of-use software invites arbitrary,
+- **Not reproducible**: point-and-click software invites arbitrary,
   undocumented choices by the analyst.
-- **Slow**: routine analysis takes hours.
-- **Not production-ready**: as of 2026-04-30, proprietary softwares for
-  flow cytometry analaysis are not sanctioned by regulators such as the
-  FDA.
-- **Cut off from modern tooling**: staying outside R isolates analysts
-  from state-of-the-art statistical modelling, visualization, and
-  workflow tools.
+- **Slow**: routine analysis takes hours and is difficult to combine or
+  audit across experiments.
+- **Not production-ready**: proprietary software for flow cytometry
+  analysis lacks the validation, audit trails, and reproducibility
+  guarantees required for regulated environments (as of 2026-04-30).
+- **Cut off from modern tooling**: staying outside a programming
+  environment isolates analysts from state-of-the-art statistical
+  modeling, automation, visualization, and workflow tools.
