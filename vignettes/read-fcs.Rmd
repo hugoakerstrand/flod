@@ -1,0 +1,13 @@
+---
+title: "Read in .fcs files"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Read in .fcs files}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Flow Cytometry Standard (FCS)
+The FCS file contains both the raw data and the specifications necessary to completely describe it. 
+
+Originally deviced back 1984 (FCS 1.0), the current standard is FCS3.1 (`flod::read_fcs` supports 3.0 and above).
