@@ -8,3 +8,6 @@ README.html
 /.quarto/
 **/*.quarto_ipynb
 **/.quarto/
+src/rust/vendor
+src/Makevars
+src/Makevars.win
